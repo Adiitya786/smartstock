@@ -2,6 +2,8 @@ package com.smartstock.Controller;
 
 import com.smartstock.Repo.InventoryRepo;
 import com.smartstock.Service.InventoryService;
+import com.smartstock.dto.InventoryRequest;
+import com.smartstock.dto.InventoryResponse;
 import com.smartstock.model.Inventory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -14,15 +16,28 @@ public class InventoryController {
     private InventoryService service;
 
     @PostMapping("/{productId}")
-    public Inventory createInventory(@PathVariable Long productId, @RequestParam int quantity){
+    public InventoryResponse createInventory(@PathVariable Long productId, @RequestParam int quantity){
 
         return service.createInventory(productId,quantity);
     }
     @GetMapping("/{productId}")
-    public Inventory getInventory(
+    public InventoryResponse getInventory(
             @PathVariable Long productId) {
 
         return service
                 .getInventoryByProductId(productId);
+    }
+
+    @PostMapping("/{id}/add")
+    public InventoryResponse addQuantity(@PathVariable Long id, @RequestParam int quantity){
+
+        return service.AddQuantity(id,quantity);
+    }
+
+
+    @PostMapping("/{id}/remove")
+    public InventoryResponse removeQuantity(@PathVariable Long id, @RequestParam int quantity){
+
+        return service.removeQuantity(id,quantity);
     }
 }

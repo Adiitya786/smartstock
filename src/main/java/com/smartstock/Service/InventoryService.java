@@ -2,6 +2,7 @@ package com.smartstock.Service;
 
 import com.smartstock.Repo.InventoryRepo;
 import com.smartstock.Repo.ProductRepo;
+import com.smartstock.dto.InventoryResponse;
 import com.smartstock.exception.ProductNotFoundException;
 import com.smartstock.model.Inventory;
 import com.smartstock.model.Product;
@@ -16,7 +17,7 @@ public class InventoryService {
     @Autowired
     private InventoryRepo irepo;
 
-    public Inventory createInventory(Long productId,int quantity){
+    public InventoryResponse createInventory(Long productId,int quantity){
 
         if (quantity < 0) {
             throw new IllegalArgumentException(
@@ -32,13 +33,82 @@ public class InventoryService {
         inventory.setProduct(product);
         inventory.setQuantity(quantity);
         inventory.setReservedQuantity(0);
-        return irepo.save(inventory);
+        Inventory savedInventory = irepo.save(inventory);
+
+        return mapToResponse(savedInventory);
     }
 
-    public Inventory getInventoryByProductId(Long productId) {
-        return irepo.findByProductId(productId)
+    public InventoryResponse getInventoryByProductId(Long productId) {
+
+        Inventory inventory= irepo.findByProductId(productId)
                 .orElseThrow(() ->
                         new RuntimeException(
                                 "Inventory not found for product: " + productId));
+
+        return mapToResponse(inventory);
     }
+
+    public InventoryResponse AddQuantity(Long ProductId, int quantity){
+
+        if(quantity<0) {
+            throw
+                    new RuntimeException(
+                            "Quantity must be greater than zero"
+                    );
+        }
+        Inventory inventory = irepo.findByProductId(ProductId)
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "Inventory not found for product: " + ProductId
+                        ));
+
+              inventory.setQuantity(inventory.getQuantity()+quantity);
+
+        Inventory savedInventory = irepo.save(inventory);
+
+        return mapToResponse(savedInventory);
+    }
+
+    public InventoryResponse removeQuantity(Long ProductId, int quantity){
+
+        if(quantity<=0) {
+            throw
+                    new RuntimeException(
+                            "Quantity  must be greater than zero"
+                    );
+        }
+        Inventory inventory = irepo.findByProductId(ProductId)
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "Inventory not found for product: " + ProductId
+                        ));
+
+        int availstock = inventory.getQuantity()-inventory.getReservedQuantity();
+        if(quantity>availstock){
+            throw
+                    new RuntimeException(
+                            "Insufficient  available stock"
+                    );
+        }
+        inventory.setQuantity(inventory.getQuantity()-quantity);
+
+        Inventory savedInventory = irepo.save(inventory);
+
+        return mapToResponse(savedInventory);
+    }
+
+    public InventoryResponse mapToResponse(Inventory inventory){
+        InventoryResponse response = new InventoryResponse();
+        response.setId(inventory.getId());
+        response.setProductId(inventory.getProduct().getId());
+        response.setProductName(inventory.getProduct().getName());
+        response.setQuantity(inventory.getQuantity());
+        response.setReservedQuantity(inventory.getReservedQuantity());
+        response.setAvailableQuantity(inventory.getQuantity()- inventory.getReservedQuantity());
+
+        return  response;
+    }
+
+
+
 }
