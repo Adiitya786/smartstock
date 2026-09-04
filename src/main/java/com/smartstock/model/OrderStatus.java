@@ -1,4 +1,4 @@
-package com.smartstock.enums;
+package com.smartstock.model;
 
 
 public enum OrderStatus {

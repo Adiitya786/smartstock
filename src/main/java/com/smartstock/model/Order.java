@@ -1,6 +1,5 @@
 package com.smartstock.model;
 
-import com.smartstock.enums.OrderStatus;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
