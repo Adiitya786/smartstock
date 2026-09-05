@@ -7,6 +7,7 @@ import com.smartstock.dto.OrderItemRequest;
 import com.smartstock.dto.OrderItemResponse;
 import com.smartstock.dto.OrderRequest;
 import com.smartstock.dto.OrderResponse;
+import com.smartstock.exception.OrderNotFoundException;
 import com.smartstock.exception.ProductNotFoundException;
 import com.smartstock.exception.UserNotFoundException;
 import com.smartstock.model.*;
@@ -76,6 +77,28 @@ public class OrderService {
 
         return mapToResponse(savedOrder);
 
+    }
+
+    public OrderResponse getOrderById(Long orderId){
+        Order order= orepo.findById(orderId).orElseThrow(
+                ()->new OrderNotFoundException("Order not found with id: " + orderId)
+        );
+         return mapToResponse(order);
+    }
+
+    public List<OrderResponse> getOrdersByUserId(Long userId) {
+
+        urepo.findById(userId)
+                .orElseThrow(() ->
+                        new UserNotFoundException(
+                                "User not found with id: " + userId
+                        ));
+
+        List<Order> orders = orepo.findByUserId(userId);
+
+        return orders.stream()
+                .map(this::mapToResponse)
+                .toList();
     }
 
     public OrderResponse mapToResponse(Order order){

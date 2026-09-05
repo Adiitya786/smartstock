@@ -48,4 +48,14 @@ public class GlobalExceptionHandler {
                 "error", ex.getMessage()
         );
     }
+
+    @ExceptionHandler(OrderNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public Map<String, String> handleOrderNotFound(
+            OrderNotFoundException ex) {
+
+        return Map.of(
+                "error", ex.getMessage()
+        );
+    }
 }
