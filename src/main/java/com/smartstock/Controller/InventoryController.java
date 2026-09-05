@@ -40,4 +40,20 @@ public class InventoryController {
 
         return service.removeQuantity(id,quantity);
     }
+
+    @PostMapping("/{productId}/reserve")
+    public InventoryResponse reserveStock(
+            @PathVariable Long productId,
+            @RequestParam int quantity) {
+
+        return service.reserveStock(productId, quantity);
+    }
+
+    @PostMapping("/{productId}/release")
+    public InventoryResponse releaseStock(
+            @PathVariable Long productId,
+            @RequestParam int quantity) {
+
+        return service.releaseStock(productId, quantity);
+    }
 }

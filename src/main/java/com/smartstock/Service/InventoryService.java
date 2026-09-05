@@ -50,7 +50,7 @@ public class InventoryService {
 
     public InventoryResponse AddQuantity(Long ProductId, int quantity){
 
-        if(quantity<0) {
+        if(quantity<=0) {
             throw
                     new RuntimeException(
                             "Quantity must be greater than zero"
@@ -109,6 +109,53 @@ public class InventoryService {
         return  response;
     }
 
+    public InventoryResponse reserveStock(Long ProductId,int quantity){
 
+        if(quantity<=0){
+            throw new RuntimeException("Reservation quantity must be greater than 0");
+        }
+
+        Inventory  inventory = irepo.findByProductId(ProductId).orElseThrow(
+                ()-> new RuntimeException("No inventory find with product id: "+ProductId)
+        );
+
+        int availStock = inventory.getQuantity()-inventory.getReservedQuantity();
+        if(quantity>availStock){
+            throw new RuntimeException("Insufficient available stock");
+        }
+        inventory.setReservedQuantity(inventory.getReservedQuantity()+quantity);
+        Inventory saved = irepo.save(inventory);
+        return mapToResponse(inventory);
+    }
+
+
+    public InventoryResponse releaseStock(Long productId, int quantity) {
+
+        if (quantity <= 0) {
+            throw new RuntimeException(
+                    "Release quantity must be greater than zero"
+            );
+        }
+
+        Inventory inventory = irepo.findByProductId(productId)
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "Inventory not found for product: " + productId
+                        ));
+
+        if (quantity > inventory.getReservedQuantity()) {
+            throw new RuntimeException(
+                    "Cannot release more than reserved stock"
+            );
+        }
+
+        inventory.setReservedQuantity(
+                inventory.getReservedQuantity() - quantity
+        );
+
+        Inventory savedInventory = irepo.save(inventory);
+
+        return mapToResponse(savedInventory);
+    }
 
 }
