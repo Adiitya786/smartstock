@@ -78,4 +78,14 @@ public class GlobalExceptionHandler {
                 "error", ex.getMessage()
         );
     }
+
+    @ExceptionHandler(InvalidOrderStateException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Map<String, String> handleInvalidOrderState(
+            InvalidOrderStateException ex) {
+
+        return Map.of(
+                "error", ex.getMessage()
+        );
+    }
 }

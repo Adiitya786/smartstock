@@ -7,6 +7,7 @@ import com.smartstock.dto.OrderItemRequest;
 import com.smartstock.dto.OrderItemResponse;
 import com.smartstock.dto.OrderRequest;
 import com.smartstock.dto.OrderResponse;
+import com.smartstock.exception.InvalidOrderStateException;
 import com.smartstock.exception.OrderNotFoundException;
 import com.smartstock.exception.ProductNotFoundException;
 import com.smartstock.exception.UserNotFoundException;
@@ -83,6 +84,40 @@ public class OrderService {
 
         return mapToResponse(savedOrder);
 
+    }
+
+    @Transactional
+    public OrderResponse cancelOrder(Long OrderId){
+        Order order = orepo.findById(OrderId).orElseThrow(
+                ()-> new OrderNotFoundException("Order Not Found for id: "+OrderId)
+        );
+
+        OrderStatus currStatus = order.getStatus();
+        if(currStatus==OrderStatus.CANCELLED){
+            throw new InvalidOrderStateException("Order is already cancelled");
+        }
+
+        if (currStatus == OrderStatus.SHIPPED ||
+                currStatus == OrderStatus.DELIVERED) {
+
+            throw new InvalidOrderStateException(
+                    "Order cannot be cancelled after shipping"
+            );
+        }
+
+        for (OrderItem item : order.getItems()) {
+
+            inventoryService.releaseStock(
+                    item.getProduct().getId(),
+                    item.getQuantity()
+            );
+        }
+
+        order.setStatus(OrderStatus.CANCELLED);
+
+        Order savedOrder = orepo.save(order);
+
+        return mapToResponse(savedOrder);
     }
 
     public OrderResponse getOrderById(Long orderId){

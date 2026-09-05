@@ -1,6 +1,7 @@
 package com.smartstock.Service;
 
 import com.smartstock.Repo.OrderRepo;
+import com.smartstock.exception.InvalidOrderStateException;
 import com.smartstock.exception.OrderNotFoundException;
 import com.smartstock.model.Order;
 import com.smartstock.model.OrderStatus;
@@ -21,7 +22,7 @@ public class OrderStateService {
         OrderStatus currStatus = order.getStatus();
 
         if (!isValidTransition(currStatus, newStatus)) {
-            throw new IllegalStateException(
+            throw new InvalidOrderStateException(
                     "Invalid order status transition from "
                             + currStatus
                             + " to "

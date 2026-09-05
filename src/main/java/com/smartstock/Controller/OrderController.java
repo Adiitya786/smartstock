@@ -45,4 +45,11 @@ public class OrderController {
        Order order = stateService.updateOrderStatus(orderId,status);
        return service.mapToResponse(order);
     }
+
+    @PatchMapping("/{orderId}/cancel")
+    public OrderResponse cancelOrder(
+            @PathVariable Long orderId) {
+
+        return service.cancelOrder(orderId);
+    }
 }
