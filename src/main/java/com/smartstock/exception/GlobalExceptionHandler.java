@@ -58,4 +58,24 @@ public class GlobalExceptionHandler {
                 "error", ex.getMessage()
         );
     }
+
+    @ExceptionHandler(InventoryNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public Map<String, String> handleInventoryNotFound(
+            InventoryNotFoundException ex) {
+
+        return Map.of(
+                "error", ex.getMessage()
+        );
+    }
+
+    @ExceptionHandler(InsufficientStockException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Map<String, String> handleInsufficientStock(
+            InsufficientStockException ex) {
+
+        return Map.of(
+                "error", ex.getMessage()
+        );
+    }
 }

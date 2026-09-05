@@ -3,6 +3,8 @@ package com.smartstock.Service;
 import com.smartstock.Repo.InventoryRepo;
 import com.smartstock.Repo.ProductRepo;
 import com.smartstock.dto.InventoryResponse;
+import com.smartstock.exception.InsufficientStockException;
+import com.smartstock.exception.InventoryNotFoundException;
 import com.smartstock.exception.ProductNotFoundException;
 import com.smartstock.model.Inventory;
 import com.smartstock.model.Product;
@@ -42,7 +44,7 @@ public class InventoryService {
 
         Inventory inventory= irepo.findByProductId(productId)
                 .orElseThrow(() ->
-                        new RuntimeException(
+                        new InventoryNotFoundException(
                                 "Inventory not found for product: " + productId));
 
         return mapToResponse(inventory);
@@ -52,13 +54,13 @@ public class InventoryService {
 
         if(quantity<=0) {
             throw
-                    new RuntimeException(
+                    new InsufficientStockException(
                             "Quantity must be greater than zero"
                     );
         }
         Inventory inventory = irepo.findByProductId(ProductId)
                 .orElseThrow(() ->
-                        new RuntimeException(
+                        new InventoryNotFoundException(
                                 "Inventory not found for product: " + ProductId
                         ));
 
@@ -73,13 +75,13 @@ public class InventoryService {
 
         if(quantity<=0) {
             throw
-                    new RuntimeException(
+                    new InsufficientStockException(
                             "Quantity  must be greater than zero"
                     );
         }
         Inventory inventory = irepo.findByProductId(ProductId)
                 .orElseThrow(() ->
-                        new RuntimeException(
+                        new InventoryNotFoundException(
                                 "Inventory not found for product: " + ProductId
                         ));
 
@@ -116,12 +118,12 @@ public class InventoryService {
         }
 
         Inventory  inventory = irepo.findByProductId(ProductId).orElseThrow(
-                ()-> new RuntimeException("No inventory find with product id: "+ProductId)
+                ()-> new InventoryNotFoundException("No inventory find with product id: "+ProductId)
         );
 
         int availStock = inventory.getQuantity()-inventory.getReservedQuantity();
         if(quantity>availStock){
-            throw new RuntimeException("Insufficient available stock");
+            throw new InsufficientStockException("Insufficient available stock");
         }
         inventory.setReservedQuantity(inventory.getReservedQuantity()+quantity);
         Inventory saved = irepo.save(inventory);
@@ -139,12 +141,12 @@ public class InventoryService {
 
         Inventory inventory = irepo.findByProductId(productId)
                 .orElseThrow(() ->
-                        new RuntimeException(
+                        new InventoryNotFoundException(
                                 "Inventory not found for product: " + productId
                         ));
 
         if (quantity > inventory.getReservedQuantity()) {
-            throw new RuntimeException(
+            throw new InsufficientStockException(
                     "Cannot release more than reserved stock"
             );
         }
