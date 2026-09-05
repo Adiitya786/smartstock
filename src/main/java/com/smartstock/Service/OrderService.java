@@ -11,6 +11,7 @@ import com.smartstock.exception.OrderNotFoundException;
 import com.smartstock.exception.ProductNotFoundException;
 import com.smartstock.exception.UserNotFoundException;
 import com.smartstock.model.*;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -28,7 +29,10 @@ public class OrderService {
     private ProductRepo prepo;
     @Autowired
     private UserRepo urepo;
+    @Autowired
+    private InventoryService inventoryService;
 
+    @Transactional
     public OrderResponse createOrder(OrderRequest request){
         User user  =  urepo.findById(request.getUserId())
                 .orElseThrow(()-> new UserNotFoundException("User Not Found with Id" +request.getUserId()))
@@ -58,6 +62,8 @@ public class OrderService {
             BigDecimal subtotal = price.multiply(
                     BigDecimal.valueOf(itemRequest.getQuantity())
             );
+
+             inventoryService.reserveStock(itemRequest.getProductId(), itemRequest.getQuantity());
 
             OrderItem item = new OrderItem();
             item.setOrder(order);
