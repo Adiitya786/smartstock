@@ -23,7 +23,16 @@ public class PaymentService {
     private InventoryService inventoryService;
 
     @Transactional
-    public PaymentResponse makePayment(Long orderId,boolean success){
+    public PaymentResponse makePayment(Long orderId,boolean success,String idempotencyKey){
+
+        Payment existingPayment =
+                prepo.findByIdempotencyKey(idempotencyKey)
+                        .orElse(null);
+
+        if (existingPayment != null) {
+            return mapToResponse(existingPayment);
+        }
+
         Order order = orepo.findById(orderId)
                 .orElseThrow(() ->
                         new OrderNotFoundException(
@@ -40,7 +49,7 @@ public class PaymentService {
         payment.setOrder(order);
         payment.setAmount(order.getTotalAmount());
         payment.setCreatedAt(order.getCreatedAt());
-
+        payment.setIdempotencyKey(idempotencyKey);
         if(success){
             payment.setStatus(PaymentStatus.SUCCESS);
             order.setStatus(OrderStatus.PAID);

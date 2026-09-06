@@ -14,7 +14,8 @@ public class PaymentController {
     private PaymentService service;
 
     @PostMapping("/{orderId}")
-    public PaymentResponse makePayment(@PathVariable Long orderId,@RequestParam boolean success){
-        return service.makePayment(orderId,success);
+    public PaymentResponse makePayment(@PathVariable Long orderId,@RequestParam boolean success,
+                                       @RequestHeader("idempotency_key") String idempotencyKey){
+        return service.makePayment(orderId,success,idempotencyKey);
     }
 }
