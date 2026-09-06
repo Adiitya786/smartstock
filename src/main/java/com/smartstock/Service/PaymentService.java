@@ -5,10 +5,7 @@ import com.smartstock.Repo.OrderRepo;
 import com.smartstock.Repo.PaymentRepo;
 import com.smartstock.dto.PaymentResponse;
 import com.smartstock.exception.OrderNotFoundException;
-import com.smartstock.model.Order;
-import com.smartstock.model.OrderStatus;
-import com.smartstock.model.Payment;
-import com.smartstock.model.PaymentStatus;
+import com.smartstock.model.*;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,9 +19,11 @@ public class PaymentService {
     private PaymentRepo prepo;
     @Autowired
     private InventoryRepo irepo;
+    @Autowired
+    private InventoryService inventoryService;
 
     @Transactional
-    public PaymentResponse makePayment(Long orderId){
+    public PaymentResponse makePayment(Long orderId,boolean success){
         Order order = orepo.findById(orderId)
                 .orElseThrow(() ->
                         new OrderNotFoundException(
@@ -35,13 +34,25 @@ public class PaymentService {
                     "Order is not ready for payment"
             );
 
+
         }
         Payment payment = new Payment();
         payment.setOrder(order);
         payment.setAmount(order.getTotalAmount());
         payment.setCreatedAt(order.getCreatedAt());
-        payment.setStatus(PaymentStatus.PENDING.SUCCESS);
-        order.setStatus(OrderStatus.PAID);
+
+        if(success){
+            payment.setStatus(PaymentStatus.SUCCESS);
+            order.setStatus(OrderStatus.PAID);
+        }
+        else{
+            payment.setStatus(PaymentStatus.FAILED);
+
+            for(OrderItem item:order.getItems()){
+                inventoryService.releaseStock(item.getProduct().getId(),item.getQuantity());
+            }
+            order.setStatus(OrderStatus.CANCELLED);
+        }
 
         prepo.save(payment);
         orepo.save(order);
@@ -55,6 +66,7 @@ public class PaymentService {
         response.setCreatedAt(payment.getCreatedAt());
         response.setOrderId(payment.getOrder().getId());
         response.setAmount(payment.getAmount());
+        response.setStatus(payment.getStatus());
 
         return response;
     }
