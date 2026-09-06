@@ -8,6 +8,7 @@ import com.smartstock.exception.InventoryNotFoundException;
 import com.smartstock.exception.ProductNotFoundException;
 import com.smartstock.model.Inventory;
 import com.smartstock.model.Product;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -130,6 +131,36 @@ public class InventoryService {
         return mapToResponse(inventory);
     }
 
+    @Transactional
+    public InventoryResponse finalizeStock(Long productId,int quantity){
+        if (quantity <= 0) {
+            throw new IllegalArgumentException(
+                    "Quantity must be greater than zero"
+            );
+        }
+        Inventory inventory = irepo.findByProductId(productId)
+                .orElseThrow(() ->
+                        new InventoryNotFoundException(
+                                "Inventory not found for product: " + productId
+                        ));
+
+        if (inventory.getReservedQuantity() < quantity) {
+            throw new InsufficientStockException(
+                    "Reserved stock is insufficient for product: " + productId
+            );
+        }
+
+        inventory.setQuantity(
+                inventory.getQuantity() - quantity
+        );
+        inventory.setReservedQuantity(
+                inventory.getReservedQuantity() - quantity
+        );
+
+        Inventory savedInventory = irepo.save(inventory);
+
+        return mapToResponse(savedInventory);
+    }
 
     public InventoryResponse releaseStock(Long productId, int quantity) {
 
