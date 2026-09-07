@@ -1,11 +1,16 @@
 package com.smartstock.Repo;
 
 import com.smartstock.model.Inventory;
-import java.util.Optional;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.Lock;
 
-@Repository
-public interface InventoryRepo extends JpaRepository<Inventory,Long> {
+import java.util.Optional;
+
+public interface InventoryRepo extends JpaRepository<Inventory, Long> {
+
     Optional<Inventory> findByProductId(Long productId);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    Optional<Inventory> findByProduct_Id(Long productId);
 }

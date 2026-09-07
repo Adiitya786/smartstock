@@ -112,13 +112,14 @@ public class InventoryService {
         return  response;
     }
 
+    @Transactional
     public InventoryResponse reserveStock(Long ProductId,int quantity){
 
         if(quantity<=0){
             throw new RuntimeException("Reservation quantity must be greater than 0");
         }
 
-        Inventory  inventory = irepo.findByProductId(ProductId).orElseThrow(
+        Inventory  inventory = irepo.findByProduct_Id(ProductId).orElseThrow(
                 ()-> new InventoryNotFoundException("No inventory find with product id: "+ProductId)
         );
 
