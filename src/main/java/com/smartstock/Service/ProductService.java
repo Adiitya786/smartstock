@@ -57,6 +57,33 @@ public class ProductService {
         return product;
     }
 
+    public ProductResponse updateProduct(Long id, ProductRequest request) {
+
+        Product product = repo.findById(id).orElseThrow(() ->
+                new ProductNotFoundException(
+                        "Product not found with id: " + id
+                )
+        );
+
+        product.setName(request.getName());
+        product.setSku(request.getSku());
+        product.setPrice(request.getPrice());
+        product.setDescription(request.getDescription());
+
+        Product updatedProduct = repo.save(product);
+
+        // Invalidate old cached version
+        cacheService.delete(id);
+
+        return new ProductResponse(
+                updatedProduct.getId(),
+                updatedProduct.getName(),
+                updatedProduct.getSku(),
+                updatedProduct.getPrice(),
+                updatedProduct.getDescription()
+        );
+    }
+
     public void deleteProduct(Long id){
          repo.deleteById(id);
          cacheService.delete(id);
