@@ -16,6 +16,9 @@ public class ProductService {
     @Autowired
     private  ProductRepo repo;
 
+    @Autowired
+    private ProductCacheService cacheService;
+
     public ProductResponse createPRoduct(ProductRequest request){
         Product product = new Product();
         product.setName(request.getName());
@@ -32,13 +35,30 @@ public class ProductService {
     public List<Product> getAllProducts(){
         return repo.findAll();
     }
-    public Product getProductById(Long id){
-        return repo.findById(id).orElseThrow(() ->
-                new ProductNotFoundException("Product not found with id: " + id)
+    public Product getProductById(Long id) {
+
+        // 1. Check Redis
+        Product cachedProduct = cacheService.get(id);
+
+        if (cachedProduct != null) {
+            return cachedProduct;
+        }
+
+        // 2. Cache miss → PostgreSQL
+        Product product = repo.findById(id).orElseThrow(() ->
+                new ProductNotFoundException(
+                        "Product not found with id: " + id
+                )
         );
+
+        // 3. Save in Redis
+        cacheService.save(product);
+
+        return product;
     }
 
     public void deleteProduct(Long id){
          repo.deleteById(id);
+         cacheService.delete(id);
     }
 }
