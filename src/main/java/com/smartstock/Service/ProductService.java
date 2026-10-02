@@ -16,6 +16,7 @@ public class ProductService {
     @Autowired
     private  ProductRepo repo;
 
+
     @Autowired
     private ProductCacheService cacheService;
 
@@ -36,6 +37,7 @@ public class ProductService {
         return repo.findAll();
     }
     public Product getProductById(Long id) {
+
 
         // 1. Check Redis
         Product cachedProduct = cacheService.get(id);
