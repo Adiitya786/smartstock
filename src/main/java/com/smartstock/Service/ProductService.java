@@ -36,6 +36,7 @@ public class ProductService {
     public List<Product> getAllProducts(){
         return repo.findAll();
     }
+
     public Product getProductById(Long id) {
 
 
