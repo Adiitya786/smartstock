@@ -10,27 +10,33 @@ public class RateLimitService {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
-    private static final int MAX_REQUESTS = 5;
-    private static final long WINDOW_SECONDS = 60;
+    public RateLimitService(
+            RedisTemplate<String, Object> redisTemplate) {
 
-    public RateLimitService(RedisTemplate<String, Object> redisTemplate) {
         this.redisTemplate = redisTemplate;
     }
 
-    public boolean isAllowed(String clientId) {
+    public boolean isAllowed(
+            Long userId,
+            String resource,
+            int maxRequests,
+            long windowSeconds) {
 
-        String key = "rate_limit:" + clientId;
+        String key =
+                "rate_limit:user:" + userId + ":" + resource;
 
-        Long count = redisTemplate.opsForValue().increment(key);
+        Long count =
+                redisTemplate.opsForValue().increment(key);
 
         if (count == 1) {
             redisTemplate.expire(
                     key,
-                    WINDOW_SECONDS,
+                    windowSeconds,
                     TimeUnit.SECONDS
             );
         }
 
-        return count <= MAX_REQUESTS;
+        return count <= maxRequests;
+
     }
 }
